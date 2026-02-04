@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { WorkflowIcon } from "lucide-react";
 import {
   PromptInput,
@@ -53,10 +52,7 @@ export function WorkflowMentionInput({
   inputClassName,
   footerClassName,
 }: WorkflowMentionInputProps) {
-  const mentionOpenRef = useRef(false);
-
   const handleSubmit = (msg: { text: string }) => {
-    if (mentionOpenRef.current) return;
     onSubmit(msg.text);
   };
 
@@ -65,9 +61,6 @@ export function WorkflowMentionInput({
       className="w-full [&_[data-slot='input-group']>div:first-child]:w-full"
       onInputValueChange={onChange}
       inputValue={value}
-      onOpenChange={(open) => {
-        mentionOpenRef.current = open;
-      }}
     >
       <PromptInput onSubmit={handleSubmit} className={cn(inputClassName)}>
         <MentionInput asChild>

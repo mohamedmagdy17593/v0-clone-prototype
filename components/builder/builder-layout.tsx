@@ -58,7 +58,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
   const [demoStreamMessageId, setDemoStreamMessageId] = useState<string | null>(null);
   const [visibleActivityCount, setVisibleActivityCount] = useState(0);
   const [selectedDemo, setSelectedDemo] = useState<DemoConfig>(FALLBACK_DEMO);
-  const hasInitialized = useRef(false);
+  const lastAutoRunKeyRef = useRef<string | null>(null);
   const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamingMessageIdRef = useRef<string | null>(null);
   const isStreamingRef = useRef(false);
@@ -212,20 +212,23 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
     [startGeneration],
   );
 
-  // Auto-trigger generation when coming from home with a prompt or template
+  // Auto-trigger generation when coming from home with a prompt or template.
+  // Use a key-based guard instead of one-time init to avoid missing late-arriving search params.
   useEffect(() => {
-    if (hasInitialized.current) return;
+    const promptToSend = initialPrompt?.trim() || null;
 
-    const promptToSend = initialPrompt || (template ? `Create a ${template} interface` : null);
-    if (promptToSend) {
-      hasInitialized.current = true;
-      // Use timeout to avoid synchronous setState in effect
-      const timer = setTimeout(
-        () => handleSend(promptToSend, { template: template || undefined }),
-        0,
-      );
-      return () => clearTimeout(timer);
-    }
+    if (!promptToSend) return;
+
+    const runKey = promptToSend;
+    if (lastAutoRunKeyRef.current === runKey) return;
+
+    // Use timeout to avoid synchronous setState in effect
+    const timer = setTimeout(() => {
+      if (lastAutoRunKeyRef.current === runKey) return;
+      lastAutoRunKeyRef.current = runKey;
+      handleSend(promptToSend);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [initialPrompt, template, handleSend]);
 
   if (isMobile) {

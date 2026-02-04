@@ -10,6 +10,7 @@ export default function CreatePageContent() {
 
   return (
     <BuilderLayout
+      key={`${template ?? ""}::${prompt ?? ""}`}
       initialPrompt={prompt}
       template={template}
     />

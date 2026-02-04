@@ -66,9 +66,8 @@ export default function HomePage() {
 
   const handleSubmit = (text: string) => {
     if (text.trim()) {
-      router.push(
-        `/create?template=blank&prompt=${encodeURIComponent(text.trim())}`
-      )
+      const target = `/create?template=blank&prompt=${encodeURIComponent(text.trim())}`
+      router.push(target)
     }
   }
 
