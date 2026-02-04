@@ -12,7 +12,11 @@ function Mention({
   return (
     <MentionPrimitive.Root
       data-slot="mention"
-      className={cn(className)}
+      className={cn(
+        // Mention tag (highlighted text) styling
+        "**:data-tag:rounded-sm **:data-tag:bg-accent **:data-tag:text-accent-foreground",
+        className
+      )}
       {...props}
     />
   );
