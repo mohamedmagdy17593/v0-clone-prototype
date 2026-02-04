@@ -1,37 +1,20 @@
-export const DEMO_PLAN_TEXT = `I'll create a CV review form that integrates with the @cv_reviewer workflow. Here's my plan:
+import { CVReviewForm } from '@/components/demo/cv-review-form'
+import type { DemoConfig } from '@/lib/demo/types'
 
-**Component Structure:**
-- File upload input for resume (PDF, DOCX, TXT)
-- Textarea for job description
-- Submit button with loading state
-- Results display showing score, feedback, and suggestions
+const WORKFLOW_RESPONSE = {
+  score: 78,
+  feedback:
+    'Strong technical background with relevant experience in React and TypeScript. Good progression of responsibilities. Could benefit from more specific metrics and achievements to quantify impact.',
+  suggestions: [
+    'Add more quantifiable achievements (e.g., "Improved performance by 40%")',
+    'Include relevant keywords from the job description',
+    'Expand on leadership and mentoring experience',
+    'Add specific technologies mentioned in the job posting',
+    'Consider restructuring to highlight most relevant experience first',
+  ],
+}
 
-**Features:**
-- Drag-and-drop file upload support
-- Form validation
-- Loading states during processing
-- Clear results visualization with score badge`
-
-export type DemoActivityItem =
-  | {
-      id: string
-      type: 'text'
-      text: string
-    }
-  | {
-      id: string
-      type: 'file'
-      action: 'add' | 'edit'
-      path: string
-      description: string
-    }
-  | {
-      id: string
-      type: 'done'
-      text: string
-    }
-
-export const DEMO_ACTIVITY_STREAM: DemoActivityItem[] = [
+const activityStream: DemoConfig['activityStream'] = [
   {
     id: 'intro',
     type: 'text',
@@ -78,7 +61,7 @@ export const DEMO_ACTIVITY_STREAM: DemoActivityItem[] = [
   },
 ]
 
-export const DEMO_CODE_CONTENT = `'use client'
+const codeContent = `'use client'
 
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
@@ -208,31 +191,59 @@ export function CVReviewForm() {
   )
 }`
 
-export const DEMO_COMPLETION_MESSAGE = `I've created a CV review form component that integrates with the @cv_reviewer workflow. The form includes:
-
-- **File upload** for resume documents (PDF, DOCX, TXT)
-- **Job description textarea** for matching against
-- **Loading state** during analysis
-- **Results display** showing match score, feedback, and actionable suggestions
-
-You can try it out in the preview panel!`
-
-export const DEMO_CHAT_TRANSCRIPT_TEXT = [
-  ...DEMO_ACTIVITY_STREAM.map((item) => {
+const chatTranscriptText = activityStream
+  .map((item) => {
     if (item.type === 'text' || item.type === 'done') return item.text
     return `[${item.action.toUpperCase()}] ${item.path} - ${item.description}`
-  }),
-].join('\n')
+  })
+  .join('\n')
 
-export const MOCK_WORKFLOW_RESPONSE = {
-  score: 78,
-  feedback:
-    'Strong technical background with relevant experience in React and TypeScript. Good progression of responsibilities. Could benefit from more specific metrics and achievements to quantify impact.',
-  suggestions: [
-    'Add more quantifiable achievements (e.g., "Improved performance by 40%")',
-    'Include relevant keywords from the job description',
-    'Expand on leadership and mentoring experience',
-    'Add specific technologies mentioned in the job posting',
-    'Consider restructuring to highlight most relevant experience first',
+export const cvReviewDemo: DemoConfig = {
+  id: 'cv-review',
+  title: 'CV Reviewer Demo',
+  description: 'Builds a fake CV review app wired to @cv_reviewer.',
+  mentions: ['cv_reviewer'],
+  keywords: ['cv', 'resume', 'job description', 'review'],
+  workflows: [
+    {
+      id: 'cv_reviewer',
+      name: 'CV Reviewer',
+      description: 'Analyzes resumes against job descriptions and provides detailed feedback',
+      inputs: [
+        {
+          name: 'resume',
+          type: 'file',
+          description: 'The resume/CV file to analyze (PDF, DOCX, or TXT)',
+          required: true,
+        },
+        {
+          name: 'job_description',
+          type: 'string',
+          description: 'The job description to match against',
+          required: true,
+        },
+      ],
+      outputs: [
+        {
+          name: 'score',
+          type: 'number',
+          description: 'Overall match score from 0-100',
+        },
+        {
+          name: 'feedback',
+          type: 'string',
+          description: 'Detailed analysis of strengths and weaknesses',
+        },
+        {
+          name: 'suggestions',
+          type: 'string[]',
+          description: 'Actionable suggestions to improve the resume',
+        },
+      ],
+    },
   ],
+  activityStream,
+  codeContent,
+  chatTranscriptText,
+  previewComponent: <CVReviewForm mockResponse={WORKFLOW_RESPONSE} />,
 }

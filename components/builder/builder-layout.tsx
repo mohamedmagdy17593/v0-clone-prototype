@@ -6,19 +6,20 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DEFAULT_DEMO_ID,
+  DEMO_REGISTRY,
+  extractWorkflowMentions,
+  getDemoById,
+  pickDemoForPrompt,
+} from "@/lib/demo/demo-registry";
+import type { DemoConfig } from "@/lib/demo/types";
 import { useGenerationFlow } from "@/hooks/use-generation-flow";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatPanel, type ChatMessage } from "./chat-panel";
 import { Navbar } from "./navbar";
 import { PreviewPanel } from "./preview-panel";
-import { CVReviewForm } from "@/components/demo/cv-review-form";
-import { extractWorkflowMentions } from "@/lib/demo/workflows";
-import {
-  DEMO_ACTIVITY_STREAM,
-  DEMO_CHAT_TRANSCRIPT_TEXT,
-  DEMO_CODE_CONTENT,
-} from "@/lib/demo/responses";
 import type { GenerationStageInfo } from "@/types/generation";
 
 interface BuilderLayoutProps {
@@ -29,10 +30,15 @@ interface BuilderLayoutProps {
 const STREAM_REVEAL_INTERVAL = 1100;
 const FILE_CARD_REVEAL_INTERVAL = 3600;
 
-function getRevealDelay(index: number) {
-  const nextItem = DEMO_ACTIVITY_STREAM[index];
+function getRevealDelay(activityStream: DemoConfig["activityStream"], index: number) {
+  const nextItem = activityStream[index];
   if (!nextItem) return STREAM_REVEAL_INTERVAL;
   return nextItem.type === "file" ? FILE_CARD_REVEAL_INTERVAL : STREAM_REVEAL_INTERVAL;
+}
+
+const FALLBACK_DEMO = getDemoById(DEFAULT_DEMO_ID) ?? DEMO_REGISTRY[0];
+if (!FALLBACK_DEMO) {
+  throw new Error("Demo registry is empty. Add at least one demo configuration.");
 }
 
 export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
@@ -45,10 +51,16 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
   const [streamingContent, setStreamingContent] = useState("");
   const [demoStreamMessageId, setDemoStreamMessageId] = useState<string | null>(null);
   const [visibleActivityCount, setVisibleActivityCount] = useState(0);
+  const [selectedDemo, setSelectedDemo] = useState<DemoConfig>(FALLBACK_DEMO);
   const hasInitialized = useRef(false);
   const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamingMessageIdRef = useRef<string | null>(null);
   const isStreamingRef = useRef(false);
+  const selectedDemoRef = useRef<DemoConfig>(FALLBACK_DEMO);
+
+  useEffect(() => {
+    selectedDemoRef.current = selectedDemo;
+  }, [selectedDemo]);
 
   // Keep refs in sync with state for use in callbacks
   useEffect(() => {
@@ -63,7 +75,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
   const { state: generationState, start: startGeneration } = useGenerationFlow({
     onStageChange: (stage) => {
       // Start streaming when PLANNING begins
-      if (stage === 'PLANNING' && !isStreamingRef.current) {
+      if (stage === "PLANNING" && !isStreamingRef.current) {
         setVisibleActivityCount(1);
         setIsStreaming(true);
       }
@@ -77,17 +89,19 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
         activityTimerRef.current = null;
       }
 
+      const activeDemo = selectedDemoRef.current;
+
       // Finalize message with full content
       const msgId = streamingMessageIdRef.current;
       if (msgId) {
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === msgId ? { ...msg, content: DEMO_CHAT_TRANSCRIPT_TEXT } : msg
-          )
+            msg.id === msgId ? { ...msg, content: activeDemo.chatTranscriptText } : msg,
+          ),
         );
-        setStreamingContent(DEMO_CHAT_TRANSCRIPT_TEXT);
+        setStreamingContent(activeDemo.chatTranscriptText);
       }
-      setVisibleActivityCount(DEMO_ACTIVITY_STREAM.length);
+      setVisibleActivityCount(activeDemo.activityStream.length);
       setStreamingMessageId(null);
     },
   });
@@ -98,7 +112,8 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
       return;
     }
 
-    const maxBeforeComplete = DEMO_ACTIVITY_STREAM.length - 1;
+    const activityStream = selectedDemo.activityStream;
+    const maxBeforeComplete = activityStream.length - 1;
     if (visibleActivityCount >= maxBeforeComplete) {
       return;
     }
@@ -108,7 +123,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
       activityTimerRef.current = null;
     }
 
-    const delay = getRevealDelay(visibleActivityCount);
+    const delay = getRevealDelay(activityStream, visibleActivityCount);
     activityTimerRef.current = setTimeout(() => {
       setVisibleActivityCount((prev) => Math.min(prev + 1, maxBeforeComplete));
     }, delay);
@@ -119,14 +134,14 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
         activityTimerRef.current = null;
       }
     };
-  }, [isStreaming, streamingMessageId, visibleActivityCount]);
+  }, [isStreaming, selectedDemo, streamingMessageId, visibleActivityCount]);
 
   // Derive loading state from generation flow
   const isLoading = generationState.isActive;
 
   // Create generation stage info for overlay
   const generationStageInfo: GenerationStageInfo | undefined =
-    generationState.stage !== 'IDLE' && generationState.stage !== 'COMPLETE'
+    generationState.stage !== "IDLE" && generationState.stage !== "COMPLETE"
       ? {
           stage: generationState.stage,
           message: generationState.message,
@@ -135,46 +150,53 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
         }
       : undefined;
 
-  const handleSend = useCallback((content: string) => {
-    if (!content.trim()) return;
+  const handleSend = useCallback(
+    (content: string) => {
+      if (!content.trim()) return;
 
-    if (activityTimerRef.current) {
-      clearTimeout(activityTimerRef.current);
-      activityTimerRef.current = null;
-    }
+      const nextDemo = pickDemoForPrompt(content);
+      selectedDemoRef.current = nextDemo;
+      setSelectedDemo(nextDemo);
 
-    // Create user message
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content,
-    };
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current);
+        activityTimerRef.current = null;
+      }
 
-    // Create placeholder assistant message for streaming
-    const assistantMessageId = (Date.now() + 1).toString();
-    const assistantMessage: ChatMessage = {
-      id: assistantMessageId,
-      role: "assistant",
-      content: "",
-    };
+      // Create user message
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: "user",
+        content,
+      };
 
-    // Reset streaming state
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
-    setStreamingMessageId(assistantMessageId);
-    setDemoStreamMessageId(assistantMessageId);
-    setInput("");
-    setDemoComplete(false);
-    setIsStreaming(false);
-    setStreamingContent("");
-    setVisibleActivityCount(0);
+      // Create placeholder assistant message for streaming
+      const assistantMessageId = (Date.now() + 1).toString();
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+      };
 
-    // Extract workflow mentions for custom messages
-    const mentions = extractWorkflowMentions(content);
-    const mentionedWorkflow = mentions[0];
+      // Reset streaming state
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setStreamingMessageId(assistantMessageId);
+      setDemoStreamMessageId(assistantMessageId);
+      setInput("");
+      setDemoComplete(false);
+      setIsStreaming(false);
+      setStreamingContent("");
+      setVisibleActivityCount(0);
 
-    // Start the generation flow
-    startGeneration({ mentionedWorkflow });
-  }, [startGeneration]);
+      // Extract workflow mentions for custom messages
+      const mentions = extractWorkflowMentions(content);
+      const mentionedWorkflow = mentions[0] || nextDemo.mentions[0];
+
+      // Start the generation flow
+      startGeneration({ mentionedWorkflow });
+    },
+    [startGeneration],
+  );
 
   // Auto-trigger generation when coming from home with a prompt or template
   useEffect(() => {
@@ -208,7 +230,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
               streamingContent={streamingMessageId ? streamingContent : undefined}
               streamingMessageId={streamingMessageId || undefined}
               demoStreamMessageId={demoStreamMessageId || undefined}
-              demoStreamItems={DEMO_ACTIVITY_STREAM.slice(0, visibleActivityCount)}
+              demoStreamItems={selectedDemo.activityStream.slice(0, visibleActivityCount)}
             />
           </TabsContent>
           <TabsContent value="preview" className="flex-1 overflow-hidden">
@@ -216,8 +238,8 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
               isGenerating={isLoading}
               generationStageInfo={generationStageInfo}
               demoMode={demoComplete}
-              demoComponent={<CVReviewForm />}
-              currentCode={demoComplete ? DEMO_CODE_CONTENT : ""}
+              demoComponent={selectedDemo.previewComponent}
+              currentCode={demoComplete ? selectedDemo.codeContent : ""}
             />
           </TabsContent>
         </Tabs>
@@ -239,7 +261,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
             streamingContent={streamingMessageId ? streamingContent : undefined}
             streamingMessageId={streamingMessageId || undefined}
             demoStreamMessageId={demoStreamMessageId || undefined}
-            demoStreamItems={DEMO_ACTIVITY_STREAM.slice(0, visibleActivityCount)}
+            demoStreamItems={selectedDemo.activityStream.slice(0, visibleActivityCount)}
           />
         </ResizablePanel>
         <ResizableHandle className="bg-transparent" />
@@ -249,8 +271,8 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
               isGenerating={isLoading}
               generationStageInfo={generationStageInfo}
               demoMode={demoComplete}
-              demoComponent={<CVReviewForm />}
-              currentCode={demoComplete ? DEMO_CODE_CONTENT : ""}
+              demoComponent={selectedDemo.previewComponent}
+              currentCode={demoComplete ? selectedDemo.codeContent : ""}
             />
           </div>
         </ResizablePanel>

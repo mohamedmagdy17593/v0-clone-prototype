@@ -7,15 +7,31 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Upload, FileText, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_WORKFLOW_RESPONSE } from '@/lib/demo/responses'
 
-interface ReviewResult {
+export interface ReviewResult {
   score: number
   feedback: string
   suggestions: string[]
 }
 
-export function CVReviewForm() {
+const DEFAULT_MOCK_RESPONSE: ReviewResult = {
+  score: 78,
+  feedback:
+    'Strong technical background with relevant experience in React and TypeScript. Good progression of responsibilities. Could benefit from more specific metrics and achievements to quantify impact.',
+  suggestions: [
+    'Add more quantifiable achievements (e.g., "Improved performance by 40%")',
+    'Include relevant keywords from the job description',
+    'Expand on leadership and mentoring experience',
+    'Add specific technologies mentioned in the job posting',
+    'Consider restructuring to highlight most relevant experience first',
+  ],
+}
+
+interface CVReviewFormProps {
+  mockResponse?: ReviewResult
+}
+
+export function CVReviewForm({ mockResponse = DEFAULT_MOCK_RESPONSE }: CVReviewFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [jobDescription, setJobDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -59,16 +75,16 @@ export function CVReviewForm() {
     }
   }, [])
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!file || !jobDescription.trim()) return
 
     setIsLoading(true)
     // Simulate API call with 2.5s delay
     await new Promise((resolve) => setTimeout(resolve, 2500))
 
-    setResult(MOCK_WORKFLOW_RESPONSE)
+    setResult(mockResponse)
     setIsLoading(false)
-  }
+  }, [file, jobDescription, mockResponse])
 
   const handleReset = () => {
     setFile(null)

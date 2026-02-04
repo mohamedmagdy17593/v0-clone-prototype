@@ -18,7 +18,7 @@ import { DemoStreamMessage } from "@/components/ai-elements/demo-stream-message"
 import { StreamingMessage } from "@/components/ai-elements/streaming-message";
 import { WorkflowMentionInput } from "@/components/workflow-mention-input";
 import { cn } from "@/lib/utils";
-import type { DemoActivityItem } from "@/lib/demo/responses";
+import type { DemoActivityItem } from "@/lib/demo/types";
 
 export interface ChatMessage {
   id: string;

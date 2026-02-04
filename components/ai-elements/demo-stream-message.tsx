@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { CheckCircle2, FilePlus2, FilePenLine, Loader2 } from "lucide-react";
 import { memo, useEffect, useMemo, useState } from "react";
-import type { DemoActivityItem } from "@/lib/demo/responses";
+import type { DemoActivityItem } from "@/lib/demo/types";
 import { MessageResponse } from "@/components/ai-elements/message";
 
 interface DemoStreamMessageProps {
