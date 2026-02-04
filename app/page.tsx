@@ -96,7 +96,7 @@ export default function HomePage() {
               onChange={setInput}
               onSubmit={handleSubmit}
               placeholder="A form that reviews CVs using @cv_reviewer and displays match scores..."
-              textareaClassName="min-h-24 px-4 py-3 text-lg"
+              textareaClassName="min-h-24 px-4 py-3 text-lg md:text-lg"
               footerClassName="px-3 pb-3"
             />
           </section>
