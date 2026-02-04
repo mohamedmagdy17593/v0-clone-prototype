@@ -13,17 +13,7 @@ import {
   MessageCopyButton,
   MessageResponse,
 } from "@/components/ai-elements/message";
-import {
-  PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
-  PromptInputFooter,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputTools,
-} from "@/components/ai-elements/prompt-input";
+import { WorkflowMentionInput } from "@/components/workflow-mention-input";
 import { cn } from "@/lib/utils";
 
 export interface ChatMessage {
@@ -83,27 +73,14 @@ export function ChatPanel({
         ))}
       </ConversationContent>
 
-      <PromptInput onSubmit={(msg) => onSend(msg.text)} className="p-4">
-        <PromptInputTextarea
-          placeholder="Tell me what you'd like to create..."
-          value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-        />
-        <PromptInputFooter>
-          <PromptInputTools>
-            <PromptInputActionMenu>
-              <PromptInputActionMenuTrigger />
-              <PromptInputActionMenuContent>
-                <PromptInputActionAddAttachments />
-              </PromptInputActionMenuContent>
-            </PromptInputActionMenu>
-          </PromptInputTools>
-          <PromptInputSubmit
-            disabled={!input.trim() && !isLoading}
-            status={isLoading ? "streaming" : undefined}
-          />
-        </PromptInputFooter>
-      </PromptInput>
+      <WorkflowMentionInput
+        value={input}
+        onChange={onInputChange}
+        onSubmit={onSend}
+        placeholder="Tell me what you'd like to create... (type @ to mention a workflow)"
+        isLoading={isLoading}
+        inputClassName="p-4"
+      />
     </Conversation>
   );
 }

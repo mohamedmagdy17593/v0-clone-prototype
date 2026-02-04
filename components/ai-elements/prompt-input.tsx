@@ -29,6 +29,7 @@ import {
   type ComponentProps,
   type FormEvent,
   type FormEventHandler,
+  forwardRef,
   type HTMLAttributes,
   type KeyboardEventHandler,
   useCallback,
@@ -97,13 +98,19 @@ export const PromptInput = ({
 
 export type PromptInputTextareaProps = ComponentProps<typeof InputGroupTextarea>;
 
-export const PromptInputTextarea = ({
-  onChange,
-  onKeyDown,
-  className,
-  placeholder = "What would you like to know?",
-  ...props
-}: PromptInputTextareaProps) => {
+export const PromptInputTextarea = forwardRef<
+  HTMLTextAreaElement,
+  PromptInputTextareaProps
+>(function PromptInputTextarea(
+  {
+    onChange,
+    onKeyDown,
+    className,
+    placeholder = "What would you like to know?",
+    ...props
+  },
+  ref
+) {
   const [isComposing, setIsComposing] = useState(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
@@ -136,6 +143,7 @@ export const PromptInputTextarea = ({
 
   return (
     <InputGroupTextarea
+      ref={ref}
       className={cn("field-sizing-content max-h-48 min-h-16", className)}
       name="message"
       onChange={onChange}
@@ -146,7 +154,7 @@ export const PromptInputTextarea = ({
       {...props}
     />
   );
-};
+});
 
 export type PromptInputFooterProps = Omit<
   ComponentProps<typeof InputGroupAddon>,

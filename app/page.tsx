@@ -4,17 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/home/header"
 import { TemplateCard } from "@/components/home/template-card"
-import {
-  PromptInput,
-  PromptInputFooter,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputTools,
-  PromptInputActionMenu,
-  PromptInputActionMenuTrigger,
-  PromptInputActionMenuContent,
-  PromptInputActionAddAttachments,
-} from "@/components/ai-elements/prompt-input"
+import { WorkflowMentionInput } from "@/components/workflow-mention-input"
 import {
   BlankPreview,
   WorkflowFormPreview,
@@ -74,9 +64,9 @@ export default function HomePage() {
   const router = useRouter()
   const [input, setInput] = useState("")
 
-  const handleSubmit = (message: { text: string }) => {
-    if (message.text.trim()) {
-      router.push(`/create?prompt=${encodeURIComponent(message.text.trim())}`)
+  const handleSubmit = (text: string) => {
+    if (text.trim()) {
+      router.push(`/create?prompt=${encodeURIComponent(text.trim())}`)
     }
   }
 
@@ -101,25 +91,14 @@ export default function HomePage() {
               </p>
             </div>
 
-            <PromptInput onSubmit={handleSubmit}>
-              <PromptInputTextarea
-                placeholder="A form that reviews CVs using @cv_reviewer and displays match scores..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="min-h-24 px-4 py-3 text-lg"
-              />
-              <PromptInputFooter className="px-3 pb-3">
-                <PromptInputTools>
-                  <PromptInputActionMenu>
-                    <PromptInputActionMenuTrigger />
-                    <PromptInputActionMenuContent>
-                      <PromptInputActionAddAttachments />
-                    </PromptInputActionMenuContent>
-                  </PromptInputActionMenu>
-                </PromptInputTools>
-                <PromptInputSubmit disabled={!input.trim()} />
-              </PromptInputFooter>
-            </PromptInput>
+            <WorkflowMentionInput
+              value={input}
+              onChange={setInput}
+              onSubmit={handleSubmit}
+              placeholder="A form that reviews CVs using @cv_reviewer and displays match scores..."
+              textareaClassName="min-h-24 px-4 py-3 text-lg"
+              footerClassName="px-3 pb-3"
+            />
           </section>
 
           {/* Templates */}
