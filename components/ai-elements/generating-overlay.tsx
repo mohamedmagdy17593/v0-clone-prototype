@@ -6,7 +6,16 @@ import CodeWords from "@/components/icons/code-words";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
-import { Brain, ListTodo, Code, Package, CheckCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  Brain,
+  CheckCircle,
+  Code,
+  ListTodo,
+  Package,
+  RefreshCw,
+  WifiOff,
+} from "lucide-react";
 import type { GenerationStageInfo } from "@/types/generation";
 
 interface GeneratingOverlayProps {
@@ -28,6 +37,9 @@ const STAGE_ICONS = {
   PLANNING: ListTodo,
   GENERATING: Code,
   BUILDING: Package,
+  BUILD_FAILED: AlertTriangle,
+  RECOVERING: RefreshCw,
+  INTERRUPTED: WifiOff,
   COMPLETE: CheckCircle,
 } as const;
 

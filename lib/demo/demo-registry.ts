@@ -9,9 +9,15 @@
  * 4) Optionally set `DEFAULT_DEMO_ID` to your preferred fallback demo id.
  */
 import { cvReviewDemo } from '@/lib/demo/demos/cv-review-demo'
+import { gmailTriageDemo } from '@/lib/demo/demos/gmail-triage-demo'
+import { redditWeeklySummaryDemo } from '@/lib/demo/demos/reddit-weekly-summary-demo'
 import type { DemoConfig } from '@/lib/demo/types'
 
-export const DEMO_REGISTRY: DemoConfig[] = [cvReviewDemo]
+export const DEMO_REGISTRY: DemoConfig[] = [
+  cvReviewDemo,
+  redditWeeklySummaryDemo,
+  gmailTriageDemo,
+]
 
 export const DEFAULT_DEMO_ID = 'cv-review'
 

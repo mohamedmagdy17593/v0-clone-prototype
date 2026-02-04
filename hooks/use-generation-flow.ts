@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { GenerationStage, GenerationFlowState } from '@/types/generation'
+import type {
+  GenerationFlowMode,
+  GenerationFlowState,
+  GenerationStage,
+} from '@/types/generation'
 
 interface StageConfig {
   message: string
@@ -15,24 +19,41 @@ const STAGE_CONFIGS: Record<Exclude<GenerationStage, 'IDLE'>, StageConfig> = {
   THINKING: {
     message: 'Understanding your request...',
     messageWithWorkflow: (workflow) => `Fetching @${workflow} schema...`,
-    duration: 1500,
-    progress: 10,
+    duration: 1200,
+    progress: 8,
   },
   PLANNING: {
     message: 'Planning component structure...',
-    duration: 2000,
-    progress: 30,
+    duration: 1600,
+    progress: 24,
   },
   GENERATING: {
     message: 'Writing code...',
-    duration: 5000,
-    progress: 60,
-    currentFile: 'CVReviewForm.tsx',
+    duration: 2800,
+    progress: 56,
+    currentFile: 'app/page.tsx',
   },
   BUILDING: {
     message: 'Building preview...',
-    duration: 2500,
-    progress: 90,
+    duration: 1800,
+    progress: 82,
+  },
+  BUILD_FAILED: {
+    message: 'Build failed. Reading error logs...',
+    duration: 1400,
+    progress: 70,
+    currentFile: 'build.log',
+  },
+  RECOVERING: {
+    message: 'Applying automatic fix and retrying...',
+    duration: 1700,
+    progress: 76,
+    currentFile: 'next.config.ts',
+  },
+  INTERRUPTED: {
+    message: 'Connection interrupted. Attempting to resume...',
+    duration: 1300,
+    progress: 48,
   },
   COMPLETE: {
     message: 'Complete!',
@@ -41,13 +62,29 @@ const STAGE_CONFIGS: Record<Exclude<GenerationStage, 'IDLE'>, StageConfig> = {
   },
 }
 
-const STAGE_ORDER: Array<Exclude<GenerationStage, 'IDLE'>> = [
-  'THINKING',
-  'PLANNING',
-  'GENERATING',
-  'BUILDING',
-  'COMPLETE',
-]
+const FLOW_SEQUENCES: Record<GenerationFlowMode, Array<Exclude<GenerationStage, 'IDLE'>>> = {
+  happy_path: ['THINKING', 'PLANNING', 'GENERATING', 'BUILDING', 'COMPLETE'],
+  build_retry: [
+    'THINKING',
+    'PLANNING',
+    'GENERATING',
+    'BUILDING',
+    'BUILD_FAILED',
+    'RECOVERING',
+    'BUILDING',
+    'COMPLETE',
+  ],
+  interrupt_resume: [
+    'THINKING',
+    'PLANNING',
+    'GENERATING',
+    'INTERRUPTED',
+    'RECOVERING',
+    'GENERATING',
+    'BUILDING',
+    'COMPLETE',
+  ],
+}
 
 interface UseGenerationFlowOptions {
   onStageChange?: (stage: GenerationStage) => void
@@ -85,6 +122,7 @@ export function useGenerationFlow(options: UseGenerationFlowOptions = {}) {
   const [stageIndex, setStageIndex] = useState(-1)
 
   const workflowRef = useRef<string | null>(null)
+  const flowModeRef = useRef<GenerationFlowMode>('happy_path')
   const onCompleteRef = useRef(onComplete)
   const onStageChangeRef = useRef(onStageChange)
 
@@ -98,7 +136,8 @@ export function useGenerationFlow(options: UseGenerationFlowOptions = {}) {
   useEffect(() => {
     if (stageIndex < 0) return // Not started
 
-    const stage = STAGE_ORDER[stageIndex]
+    const sequence = FLOW_SEQUENCES[flowModeRef.current]
+    const stage = sequence[stageIndex]
     if (!stage) return
 
     const config = STAGE_CONFIGS[stage]
@@ -112,7 +151,7 @@ export function useGenerationFlow(options: UseGenerationFlowOptions = {}) {
     }
 
     // Schedule next stage
-    if (config.duration > 0 && stageIndex < STAGE_ORDER.length - 1) {
+    if (config.duration > 0 && stageIndex < sequence.length - 1) {
       const timer = setTimeout(() => {
         setStageIndex((prev) => prev + 1)
       }, config.duration)
@@ -120,13 +159,18 @@ export function useGenerationFlow(options: UseGenerationFlowOptions = {}) {
     }
   }, [stageIndex])
 
-  const start = useCallback((opts?: { mentionedWorkflow?: string }) => {
-    workflowRef.current = opts?.mentionedWorkflow || null
-    setStageIndex(0) // Start at THINKING
-  }, [])
+  const start = useCallback(
+    (opts?: { mentionedWorkflow?: string; mode?: GenerationFlowMode }) => {
+      workflowRef.current = opts?.mentionedWorkflow || null
+      flowModeRef.current = opts?.mode || 'happy_path'
+      setStageIndex(0) // Start at THINKING
+    },
+    []
+  )
 
   const reset = useCallback(() => {
     workflowRef.current = null
+    flowModeRef.current = 'happy_path'
     setStageIndex(-1)
     setState({
       stage: 'IDLE',

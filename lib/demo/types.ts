@@ -1,3 +1,5 @@
+import type { GenerationFlowMode } from '@/types/generation'
+
 export interface WorkflowSchema {
   id: string
   name: string
@@ -45,4 +47,5 @@ export interface DemoConfig {
   codeContent: string
   chatTranscriptText: string
   previewComponent: React.ReactNode
+  flowMode?: GenerationFlowMode
 }

@@ -96,7 +96,13 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
       if (msgId) {
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === msgId ? { ...msg, content: activeDemo.chatTranscriptText } : msg,
+            msg.id === msgId
+              ? {
+                  ...msg,
+                  content: activeDemo.chatTranscriptText,
+                  demoStreamItems: activeDemo.activityStream,
+                }
+              : msg,
           ),
         );
         setStreamingContent(activeDemo.chatTranscriptText);
@@ -176,6 +182,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
         id: assistantMessageId,
         role: "assistant",
         content: "",
+        demoStreamItems: [],
       };
 
       // Reset streaming state
@@ -193,7 +200,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
       const mentionedWorkflow = mentions[0] || nextDemo.mentions[0];
 
       // Start the generation flow
-      startGeneration({ mentionedWorkflow });
+      startGeneration({ mentionedWorkflow, mode: nextDemo.flowMode });
     },
     [startGeneration],
   );

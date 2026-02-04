@@ -1,4 +1,15 @@
-export type GenerationStage = 'IDLE' | 'THINKING' | 'PLANNING' | 'GENERATING' | 'BUILDING' | 'COMPLETE'
+export type GenerationStage =
+  | 'IDLE'
+  | 'THINKING'
+  | 'PLANNING'
+  | 'GENERATING'
+  | 'BUILDING'
+  | 'BUILD_FAILED'
+  | 'RECOVERING'
+  | 'INTERRUPTED'
+  | 'COMPLETE'
+
+export type GenerationFlowMode = 'happy_path' | 'build_retry' | 'interrupt_resume'
 
 export interface GenerationStageInfo {
   stage: Exclude<GenerationStage, 'IDLE'>

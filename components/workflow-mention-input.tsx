@@ -24,10 +24,10 @@ import { cn } from "@/lib/utils";
 // Mock workflow data
 const MOCK_WORKFLOWS = [
   { id: "cv_reviewer", label: "cv_reviewer" },
+  { id: "reddit_weekly_summary", label: "reddit_weekly_summary" },
+  { id: "gmail_ai_labeler", label: "gmail_ai_labeler" },
   { id: "cv_parser", label: "cv_parser" },
-  { id: "email_generator", label: "email_generator" },
   { id: "text_summarizer", label: "text_summarizer" },
-  { id: "sentiment_analyzer", label: "sentiment_analyzer" },
 ];
 
 interface WorkflowMentionInputProps {

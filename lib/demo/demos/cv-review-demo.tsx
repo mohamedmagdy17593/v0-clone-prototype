@@ -204,6 +204,7 @@ export const cvReviewDemo: DemoConfig = {
   description: 'Builds a fake CV review app wired to @cv_reviewer.',
   mentions: ['cv_reviewer'],
   keywords: ['cv', 'resume', 'job description', 'review'],
+  flowMode: 'happy_path',
   workflows: [
     {
       id: 'cv_reviewer',

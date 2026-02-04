@@ -5,7 +5,16 @@ import { Progress } from '@/components/ui/progress'
 import { Shimmer } from '@/components/ai-elements/shimmer'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
-import { Brain, ListTodo, Code, Package, CheckCircle } from 'lucide-react'
+import {
+  AlertTriangle,
+  Brain,
+  CheckCircle,
+  Code,
+  ListTodo,
+  Package,
+  RefreshCw,
+  WifiOff,
+} from 'lucide-react'
 import type { GenerationFlowState } from '@/types/generation'
 
 interface GenerationProgressCardProps {
@@ -19,6 +28,9 @@ const STAGE_ICONS = {
   PLANNING: ListTodo,
   GENERATING: Code,
   BUILDING: Package,
+  BUILD_FAILED: AlertTriangle,
+  RECOVERING: RefreshCw,
+  INTERRUPTED: WifiOff,
   COMPLETE: CheckCircle,
 } as const
 
@@ -28,6 +40,9 @@ const STAGE_COLORS = {
   PLANNING: 'text-purple-500',
   GENERATING: 'text-orange-500',
   BUILDING: 'text-green-500',
+  BUILD_FAILED: 'text-destructive',
+  RECOVERING: 'text-amber-500',
+  INTERRUPTED: 'text-muted-foreground',
   COMPLETE: 'text-green-600',
 } as const
 

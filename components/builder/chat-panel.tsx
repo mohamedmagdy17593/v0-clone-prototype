@@ -24,6 +24,7 @@ export interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
+  demoStreamItems?: DemoActivityItem[];
 }
 
 const ChatMessageItem = memo(function ChatMessageItem({
@@ -70,10 +71,10 @@ const ChatMessageItem = memo(function ChatMessageItem({
 });
 
 const SUGGESTION_PROMPTS = [
-  "A landing page",
-  "A dashboard",
-  "A sign-up form",
-  "A pricing table",
+  "Build a CV reviewer with @cv_reviewer",
+  "Summarize r/nextjs weekly to Slack with @reddit_weekly_summary",
+  "Auto-label support inbox with @gmail_ai_labeler",
+  "Create a dashboard for workflow runs",
 ];
 
 interface ChatPanelProps {
@@ -107,10 +108,12 @@ export function ChatPanel({
         <ConversationContent className="space-y-2">
           {messages.map((message) => {
             const isStreaming = streamingMessageId === message.id;
+            const resolvedDemoItems =
+              demoStreamMessageId && message.id === demoStreamMessageId
+                ? (demoStreamItems ?? [])
+                : (message.demoStreamItems ?? []);
             const isDemoStreamMessage =
-              !!demoStreamMessageId &&
-              message.id === demoStreamMessageId &&
-              !!demoStreamItems?.length;
+              message.role === "assistant" && resolvedDemoItems.length > 0;
 
             return (
               <ChatMessageItem
@@ -124,7 +127,7 @@ export function ChatPanel({
                 customAssistantContent={
                   isDemoStreamMessage ? (
                     <DemoStreamMessage
-                      items={demoStreamItems ?? []}
+                      items={resolvedDemoItems}
                       isStreaming={isStreaming}
                     />
                   ) : undefined
@@ -145,7 +148,7 @@ export function ChatPanel({
                 key={prompt}
                 type="button"
                 onClick={() => onInputChange(prompt)}
-                className="rounded-md border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-muted"
+                className="rounded-md border border-border/80 bg-background px-2.5 py-1 text-[11px] font-normal text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 {prompt}
               </button>

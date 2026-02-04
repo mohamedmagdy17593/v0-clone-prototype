@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { CheckCircle2, FilePlus2, FilePenLine, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FilePlus2, FilePenLine, Loader2, RefreshCw } from "lucide-react";
 import { memo, useEffect, useMemo, useState } from "react";
 import type { DemoActivityItem } from "@/lib/demo/types";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -81,6 +81,9 @@ export const DemoStreamMessage = memo(function DemoStreamMessage({
   isStreaming = false,
   className,
 }: DemoStreamMessageProps) {
+  const isErrorLikeText = (text: string) =>
+    /(interrupted|expired|timeout|failed|error)/i.test(text);
+
   const lastFileIndex = (() => {
     for (let i = items.length - 1; i >= 0; i--) {
       if (items[i]?.type === "file") return i;
@@ -99,16 +102,37 @@ export const DemoStreamMessage = memo(function DemoStreamMessage({
       {items.map((item, index) => {
         if (item.type === "text") {
           const isActiveStreamingText = activeTextItem?.id === item.id;
+          const isError = isErrorLikeText(item.text);
 
           return (
             <MessageResponse key={item.id}>
-              <p className="whitespace-pre-wrap leading-relaxed">
-                {isActiveStreamingText ? (
-                  <WordStreamText key={item.id} text={item.text} />
-                ) : (
-                  item.text
-                )}
-              </p>
+              {isError ? (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                  <div className="mb-1 inline-flex items-center gap-1.5 text-xs font-medium text-destructive">
+                    <AlertTriangle className="size-3.5" />
+                    <span>Stream issue detected</span>
+                  </div>
+                  <p className="whitespace-pre-wrap leading-relaxed text-destructive/90">
+                    {isActiveStreamingText ? (
+                      <WordStreamText key={item.id} text={item.text} />
+                    ) : (
+                      item.text
+                    )}
+                  </p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-destructive/90">
+                    <RefreshCw className={cn("size-3.5", isActiveStreamingText && "animate-spin")} />
+                    <span>{isActiveStreamingText ? "Retrying and resuming..." : "Recovered. Continued generation."}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {isActiveStreamingText ? (
+                    <WordStreamText key={item.id} text={item.text} />
+                  ) : (
+                    item.text
+                  )}
+                </p>
+              )}
             </MessageResponse>
           );
         }
