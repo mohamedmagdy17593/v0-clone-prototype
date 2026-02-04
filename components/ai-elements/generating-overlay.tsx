@@ -1,9 +1,9 @@
 "use client";
 
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import CodeWords from "@/components/icons/code-words";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
-import { SparklesIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface GeneratingOverlayProps {
@@ -54,11 +54,17 @@ export function GeneratingOverlay({
       {isVisible && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          animate={{ opacity: [0.88, 0.92, 0.88] }}
+          exit={{ opacity: 0, transition: { duration: 0 } }}
+          transition={{
+            opacity: {
+              duration: 3,
+              ease: "easeInOut",
+              repeat: Infinity,
+            },
+          }}
           className={cn(
-            "absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-md",
+            "absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-background backdrop-blur-md motion-reduce:opacity-90",
             className
           )}
         >
@@ -67,33 +73,28 @@ export function GeneratingOverlay({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2, ease: "easeOut", delay: 0.05 }}
-            className="relative"
+            className="relative flex items-center justify-center"
           >
-            <div className="flex size-16 items-center justify-center rounded-2xl border border-border/50 bg-muted/50 shadow-sm">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 8,
+            <motion.div
+              animate={{
+                rotate: 360,
+                scale: [1, 1.03, 1],
+              }}
+              transition={{
+                rotate: {
+                  duration: 4,
                   ease: "linear",
                   repeat: Infinity,
-                }}
-                className="motion-reduce:animate-none"
-              >
-                <SparklesIcon className="size-7 text-foreground/80" />
-              </motion.div>
-            </div>
-
-            {/* Orbiting dot */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 3,
-                ease: "linear",
-                repeat: Infinity,
+                },
+                scale: {
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                },
               }}
-              className="absolute inset-0 motion-reduce:hidden"
+              className="text-foreground/80 motion-reduce:animate-none"
             >
-              <div className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-foreground/20" />
+              <CodeWords />
             </motion.div>
           </motion.div>
 

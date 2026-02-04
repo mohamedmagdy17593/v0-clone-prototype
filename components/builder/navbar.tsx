@@ -1,6 +1,6 @@
 "use client";
 
-import CodeWords from "@/components/icons/code-words";
+import { AnimatedLogo } from "@/components/icons/animated-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
 function Logo() {
   return (
     <a href="/" aria-label="Home">
-      <CodeWords />
+      <AnimatedLogo />
     </a>
   );
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import CodeWords from "@/components/icons/code-words"
+import { AnimatedLogo } from "@/components/icons/animated-logo"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
@@ -25,7 +25,7 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Link href="/" className="flex items-center gap-2">
-        <CodeWords />
+        <AnimatedLogo />
         <span className="text-sm font-semibold">CodeWords</span>
       </Link>
 
