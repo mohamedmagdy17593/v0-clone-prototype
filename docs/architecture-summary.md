@@ -305,6 +305,88 @@ flowchart TB
 
 ---
 
+## Database Schema
+
+```mermaid
+erDiagram
+    Project ||--o{ ProjectShare : has
+    Project ||--o{ Conversation : has
+    Project ||--o{ Snapshot : has
+    Conversation ||--o{ Message : contains
+    Template ||--o{ Project : creates
+    Message ||--o| Snapshot : triggers
+
+    Project {
+        uuid id PK
+        uuid user_id "CodeWords user ref"
+        uuid team_id "CodeWords team ref"
+        uuid template_id FK
+        string name
+        string s3_path
+        string preview_url
+        enum visibility "private|link|team|public"
+        string share_token
+        jsonb workflow_bindings
+        jsonb state "status, queue, errors"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ProjectShare {
+        uuid id PK
+        uuid project_id FK
+        uuid shared_with_user_id "CodeWords user ref"
+        uuid shared_with_team_id "CodeWords team ref"
+        enum permission "view|edit"
+        timestamp created_at
+    }
+
+    Template {
+        uuid id PK
+        string name
+        string description
+        string thumbnail_url
+        string s3_path
+        string category "form|wizard|dashboard|upload|blank"
+        boolean is_system
+        uuid created_by "CodeWords user ref"
+        timestamp created_at
+    }
+
+    Conversation {
+        uuid id PK
+        uuid project_id FK
+        timestamp created_at
+    }
+
+    Message {
+        uuid id PK
+        uuid conversation_id FK
+        enum role "user|assistant|system"
+        text content
+        jsonb mentioned_workflows
+        timestamp created_at
+    }
+
+    Snapshot {
+        uuid id PK
+        uuid project_id FK
+        uuid message_id FK
+        string label
+        jsonb files "path to hash mapping"
+        string preview_url
+        timestamp created_at
+    }
+```
+
+**Notes:**
+- `user_id`, `team_id` reference CodeWords entities (not foreign keys)
+- `workflow_bindings` stores multi-workflow config with triggers
+- `state` stores project state machine for recovery
+- `files` in Snapshot maps paths to content-addressable blob hashes
+
+---
+
 ## Sharing & Auth
 
 ```mermaid
