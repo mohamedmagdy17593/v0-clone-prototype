@@ -7,22 +7,25 @@ import {
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatPanel, type ChatMessage } from "./chat-panel";
 import { Navbar } from "./navbar";
 import { PreviewPanel } from "./preview-panel";
 
 interface BuilderLayoutProps {
   previewUrl?: string;
+  initialPrompt?: string;
+  template?: string;
 }
 
-export function BuilderLayout({ previewUrl = "https://example.com" }: BuilderLayoutProps) {
+export function BuilderLayout({ previewUrl = "https://example.com", initialPrompt, template }: BuilderLayoutProps) {
   const isMobile = useIsMobile();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const hasInitialized = useRef(false);
 
-  const handleSend = (content: string) => {
+  const handleSend = useCallback((content: string) => {
     if (!content.trim()) return;
 
     const userMessage: ChatMessage = {
@@ -44,8 +47,19 @@ export function BuilderLayout({ previewUrl = "https://example.com" }: BuilderLay
       };
       setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
-    }, 1000);
-  };
+    }, 3000);
+  }, []);
+
+  // Auto-trigger generation when coming from home with a prompt or template
+  useEffect(() => {
+    if (hasInitialized.current) return;
+
+    const promptToSend = initialPrompt || (template ? `Create a ${template} interface` : null);
+    if (promptToSend) {
+      hasInitialized.current = true;
+      handleSend(promptToSend);
+    }
+  }, [initialPrompt, template, handleSend]);
 
   if (isMobile) {
     return (
@@ -66,7 +80,7 @@ export function BuilderLayout({ previewUrl = "https://example.com" }: BuilderLay
             />
           </TabsContent>
           <TabsContent value="preview" className="flex-1 overflow-hidden">
-            <PreviewPanel previewUrl={previewUrl} />
+            <PreviewPanel previewUrl={previewUrl} isGenerating={isLoading} />
           </TabsContent>
         </Tabs>
       </div>
@@ -89,7 +103,7 @@ export function BuilderLayout({ previewUrl = "https://example.com" }: BuilderLay
         <ResizableHandle className="bg-transparent" />
         <ResizablePanel className="!overflow-hidden pb-2 pr-2">
           <div className="h-full overflow-hidden rounded-lg border border-border">
-            <PreviewPanel previewUrl={previewUrl} />
+            <PreviewPanel previewUrl={previewUrl} isGenerating={isLoading} />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

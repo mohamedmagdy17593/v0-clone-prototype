@@ -9,6 +9,7 @@ import {
   CodeBlockHeader,
   CodeBlockTitle,
 } from "@/components/ai-elements/code-block";
+import { GeneratingOverlay } from "@/components/ai-elements/generating-overlay";
 import {
   WebPreview,
   WebPreviewBody,
@@ -37,6 +38,7 @@ import { useCallback, useState } from "react";
 interface PreviewPanelProps {
   previewUrl: string;
   currentCode?: string;
+  isGenerating?: boolean;
 }
 
 type ViewportSize = "desktop" | "tablet" | "mobile";
@@ -89,7 +91,7 @@ function IconButton({
   );
 }
 
-export function PreviewPanel({ previewUrl, currentCode = "" }: PreviewPanelProps) {
+export function PreviewPanel({ previewUrl, currentCode = "", isGenerating = false }: PreviewPanelProps) {
   const [manualRefresh, setManualRefresh] = useState(0);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -209,6 +211,8 @@ export function PreviewPanel({ previewUrl, currentCode = "" }: PreviewPanelProps
             </WebPreview>
           </div>
         </div>
+
+        <GeneratingOverlay isGenerating={isGenerating} minDisplayTime={2000} />
       </TabsContent>
 
       <TabsContent

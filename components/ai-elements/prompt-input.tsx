@@ -74,7 +74,7 @@ export const PromptInput = ({
         result.then(() => {
           form.reset();
           setLocalInput("");
-        }).catch(() => {});
+        }).catch(() => { });
       } else {
         form.reset();
         setLocalInput("");
@@ -281,7 +281,7 @@ export const PromptInputSubmit = ({
   if (status === "submitted") {
     Icon = <Loader2Icon className="size-4 animate-spin" />;
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <SquareIcon className="size-4" fill="currentColor" />;
   } else if (status === "error") {
     Icon = <XIcon className="size-4" />;
   }
