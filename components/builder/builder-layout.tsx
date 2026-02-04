@@ -74,27 +74,25 @@ export function BuilderLayout({ previewUrl = "https://example.com" }: BuilderLay
   }
 
   return (
-    <ResizablePanelGroup orientation="horizontal" className="h-full">
-      <ResizablePanel defaultSize="35" minSize="25" maxSize="50">
-        <div className="flex h-full flex-col">
-          <Navbar />
-          <div className="flex-1 overflow-hidden">
-            <ChatPanel
-              messages={messages}
-              input={input}
-              onInputChange={setInput}
-              onSend={handleSend}
-              isLoading={isLoading}
-            />
+    <div className="flex h-full flex-col">
+      <Navbar />
+      <ResizablePanelGroup orientation="horizontal" className="flex-1">
+        <ResizablePanel defaultSize="35" minSize="25" maxSize="50">
+          <ChatPanel
+            messages={messages}
+            input={input}
+            onInputChange={setInput}
+            onSend={handleSend}
+            isLoading={isLoading}
+          />
+        </ResizablePanel>
+        <ResizableHandle className="bg-transparent" />
+        <ResizablePanel className="!overflow-hidden pb-2 pr-2">
+          <div className="h-full overflow-hidden rounded-lg border border-border">
+            <PreviewPanel previewUrl={previewUrl} />
           </div>
-        </div>
-      </ResizablePanel>
-      <ResizableHandle className="bg-transparent" />
-      <ResizablePanel className="!overflow-hidden py-2 pr-2">
-        <div className="h-full overflow-hidden rounded-lg border border-border/50">
-          <PreviewPanel previewUrl={previewUrl} />
-        </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   );
 }

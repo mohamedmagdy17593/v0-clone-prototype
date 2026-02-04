@@ -126,7 +126,7 @@ export function PreviewPanel({ previewUrl, currentCode = "" }: PreviewPanelProps
 
   return (
     <Tabs defaultValue="preview" className="flex h-full flex-col gap-0">
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border/50 bg-muted/30 px-3 sm:h-10">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-muted/30 px-3 sm:h-10">
         <TabsList className="h-8 bg-transparent p-0 sm:h-7">
           <TabsTrigger
             value="preview"
@@ -219,7 +219,7 @@ export function PreviewPanel({ previewUrl, currentCode = "" }: PreviewPanelProps
           language="html"
           className="flex min-h-0 flex-1 flex-col rounded-none border-0"
         >
-          <CodeBlockHeader className="shrink-0 border-b border-border/50 bg-transparent py-1.5">
+          <CodeBlockHeader className="shrink-0 border-b border-border bg-transparent py-1.5">
             <CodeBlockTitle>
               <CodeBlockFilename className="text-xs text-muted-foreground">
                 page.html

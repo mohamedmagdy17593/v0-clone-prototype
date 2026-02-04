@@ -19,7 +19,7 @@ export function TemplateCard({
     <Link
       href={href}
       className={cn(
-        "group flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-4 text-left transition-all",
+        "group flex flex-col gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all",
         "hover:border-border hover:bg-muted/50",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}

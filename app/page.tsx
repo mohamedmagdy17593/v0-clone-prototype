@@ -84,7 +84,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header user={mockUser} />
 
-      <main className="flex-1 px-6 py-24 sm:py-32">
+      <main className="flex-1 px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-2xl">
           {/* Hero Section */}
           <section className="mb-20">

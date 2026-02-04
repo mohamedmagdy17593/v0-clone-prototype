@@ -23,7 +23,7 @@ type HeaderProps = {
 
 export function Header({ user }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border/50 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Link href="/" className="flex items-center gap-2">
         <CodeWords />
         <span className="text-sm font-semibold">CodeWords</span>
