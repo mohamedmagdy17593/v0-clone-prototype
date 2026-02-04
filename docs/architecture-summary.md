@@ -115,23 +115,23 @@ sequenceDiagram
 
 ### StreamData Events
 
-| Event | When |
-|-------|------|
-| `{type: 'operation', file, op}` | File created/edited/deleted |
-| `{type: 'operation_error'}` | Pattern not found |
-| `{type: 'build_started'}` | Build triggered |
-| `{type: 'build_failed'}` | Build error |
-| `{type: 'deployed', previewUrl}` | Preview ready |
+| Event                            | When                        |
+| -------------------------------- | --------------------------- |
+| `{type: 'operation', file, op}`  | File created/edited/deleted |
+| `{type: 'operation_error'}`      | Pattern not found           |
+| `{type: 'build_started'}`        | Build triggered             |
+| `{type: 'build_failed'}`         | Build error                 |
+| `{type: 'deployed', previewUrl}` | Preview ready               |
 
 ### Client Usage
 
 ```tsx
-const { messages, data } = useChat({ api: '/api/chat' });
+const { messages, data } = useChat({ api: "/api/chat" });
 
 useEffect(() => {
   const latest = data?.[data.length - 1];
-  if (latest?.type === 'operation') updateEditor(latest.file);
-  if (latest?.type === 'deployed') setPreviewUrl(latest.previewUrl);
+  if (latest?.type === "operation") updateEditor(latest.file);
+  if (latest?.type === "deployed") setPreviewUrl(latest.previewUrl);
 }, [data]);
 ```
 
@@ -228,10 +228,10 @@ flowchart LR
     D1 --> D2 --> D3
 ```
 
-| Severity | Action |
-|----------|--------|
-| Critical/High | Block deploy |
-| Medium/Low | Warn, allow override |
+| Severity      | Action               |
+| ------------- | -------------------- |
+| Critical/High | Block deploy         |
+| Medium/Low    | Warn, allow override |
 
 ---
 
@@ -297,11 +297,11 @@ flowchart TB
 
 **Content-addressable:** Same content = same hash = deduplicated storage
 
-| Action | What happens |
-|--------|--------------|
-| Save file | Hash content → store in blobs if new |
-| Create snapshot | Record {path → hash} in DB |
-| Undo | Restore blobs to current/ |
+| Action          | What happens                         |
+| --------------- | ------------------------------------ |
+| Save file       | Hash content → store in blobs if new |
+| Create snapshot | Record {path → hash} in DB           |
+| Undo            | Restore blobs to current/            |
 
 ---
 
@@ -380,6 +380,7 @@ erDiagram
 ```
 
 **Notes:**
+
 - `user_id`, `team_id` reference CodeWords entities (not foreign keys)
 - `workflow_bindings` stores multi-workflow config with triggers
 - `state` stores project state machine for recovery
@@ -439,6 +440,7 @@ flowchart TB
 ```
 
 ### CSP Policy (on all previews)
+
 ```
 script-src 'self'
 connect-src 'self' https://api.codewords.com
@@ -446,6 +448,7 @@ frame-ancestors 'self' https://app.codewords.com
 ```
 
 ### Approved Packages Only
+
 React, Next.js, shadcn/ui, Tailwind, zod, react-hook-form, zustand, date-fns, framer-motion, etc.
 
 **No arbitrary npm packages** — prevents supply chain attacks.
@@ -481,34 +484,36 @@ flowchart TB
 
 ## Tech Stack
 
-| Layer | Choice |
-|-------|--------|
-| Frontend | Next.js 14 (App Router) |
-| Styling | Tailwind + shadcn/ui |
-| Editor | Monaco |
+| Layer     | Choice                                   |
+| --------- | ---------------------------------------- |
+| Frontend  | Next.js 14 (App Router)                  |
+| Styling   | Tailwind + shadcn/ui                     |
+| Editor    | Monaco                                   |
 | Streaming | Vercel AI SDK (`useChat` + `StreamData`) |
-| Storage | S3 (files) + PostgreSQL (metadata) |
-| Builds | Vercel (incremental via Turbopack) |
-| Auth | CodeWords |
+| Storage   | S3 (files) + PostgreSQL (metadata)       |
+| Builds    | Vercel (incremental via Turbopack)       |
+| Auth      | CodeWords                                |
 
 ---
 
 ## Rate Limits
 
-| Resource | Limit |
-|----------|-------|
-| Builds/project/hour | 20 |
-| Chat messages/user/hour | 100 |
-| Workflow calls/project/hour | 1000 |
-| Deploy Anyway/day | 5 |
+| Resource                    | Limit |
+| --------------------------- | ----- |
+| Builds/project/hour         | 20    |
+| Chat messages/user/hour     | 100   |
+| Workflow calls/project/hour | 1000  |
+| Deploy Anyway/day           | 5     |
 
 ---
 
 ## Key Metrics
 
-| Metric | Target |
-|--------|--------|
-| Incremental build | 3-8s |
-| Full rebuild | 15-30s |
-| Auto-fix retries | 3 max |
+| Metric             | Target                  |
+| ------------------ | ----------------------- |
+| Incremental build  | 3-8s                    |
+| Full rebuild       | 15-30s                  |
+| Auto-fix retries   | 3 max                   |
 | Snapshot retention | 50 per project, 30 days |
+
+https://excalidraw.com/#json=dZAuryE3AwnJ2EsLwj6ts,o4rRNzCgfzXyvJcjamIj0A
