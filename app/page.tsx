@@ -16,12 +16,12 @@ import {
   PromptInputActionAddAttachments,
 } from "@/components/ai-elements/prompt-input"
 import {
-  LandingPreview,
-  DashboardPreview,
-  FormPreview,
-  ListPreview,
-  CardsPreview,
   BlankPreview,
+  WorkflowFormPreview,
+  UploadProcessPreview,
+  MultiStepPreview,
+  ResultsViewPreview,
+  ComparisonPreview,
 } from "@/components/home/template-previews"
 
 // Mock data - in a real app this would come from an API
@@ -33,50 +33,46 @@ const mockUser = {
 
 const templates = [
   {
-    id: "landing",
-    name: "Landing",
-    description: "Hero, features, and CTA sections",
-    preview: <LandingPreview />,
-  },
-  {
-    id: "dashboard",
-    name: "Dashboard",
-    description: "Charts, KPIs, and data tables",
-    preview: <DashboardPreview />,
-  },
-  {
-    id: "form",
-    name: "Form",
-    description: "Input fields with validation",
-    preview: <FormPreview />,
-  },
-  {
-    id: "list",
-    name: "List",
-    description: "Filterable list with actions",
-    preview: <ListPreview />,
-  },
-  {
-    id: "cards",
-    name: "Cards",
-    description: "Grid of content cards",
-    preview: <CardsPreview />,
-  },
-  {
     id: "blank",
     name: "Blank",
     description: "Start from scratch",
     preview: <BlankPreview />,
+  },
+  {
+    id: "workflow-form",
+    name: "Form",
+    description: "Input → workflow → results",
+    preview: <WorkflowFormPreview />,
+  },
+  {
+    id: "upload-process",
+    name: "Upload",
+    description: "File upload → processing",
+    preview: <UploadProcessPreview />,
+  },
+  {
+    id: "multi-step",
+    name: "Multi-Step",
+    description: "Wizard with chained workflows",
+    preview: <MultiStepPreview />,
+  },
+  {
+    id: "results-view",
+    name: "Results",
+    description: "Display workflow outputs",
+    preview: <ResultsViewPreview />,
+  },
+  {
+    id: "comparison",
+    name: "Compare",
+    description: "Side-by-side workflow runs",
+    preview: <ComparisonPreview />,
   },
 ]
 
 export default function HomePage() {
   const router = useRouter()
   const [input, setInput] = useState("")
-
-  const handleTemplateSelect = (templateId: string) => {
-    router.push(`/create?template=${templateId}`)
-  }
 
   const handleSubmit = (message: { text: string }) => {
     if (message.text.trim()) {
@@ -88,31 +84,31 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header user={mockUser} />
 
-      <main className="flex-1 px-4 py-16">
+      <main className="flex-1 px-6 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl">
           {/* Hero Section */}
-          <section className="mb-16">
-            <div className="mb-8 text-center">
-              <h1 className="mb-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <section className="mb-20">
+            <div className="mb-12 text-center">
+              <h1 className="mb-4 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
                 What do you want to{" "}
                 <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                  build
+                  create
                 </span>
                 ?
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Describe your UI and watch it come to life
+              <p className="text-base text-muted-foreground">
+                Describe your interface — connect it to your workflows
               </p>
             </div>
 
             <PromptInput onSubmit={handleSubmit}>
               <PromptInputTextarea
-                placeholder="A dashboard with user analytics, a chart showing weekly activity, and a table of recent signups..."
+                placeholder="A form that reviews CVs using @cv_reviewer and displays match scores..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="min-h-24"
+                className="min-h-24 px-4 py-3 text-lg"
               />
-              <PromptInputFooter>
+              <PromptInputFooter className="px-3 pb-3">
                 <PromptInputTools>
                   <PromptInputActionMenu>
                     <PromptInputActionMenuTrigger />
@@ -128,15 +124,15 @@ export default function HomePage() {
 
           {/* Templates */}
           <section>
-            <h2 className="mb-4 text-sm font-medium text-muted-foreground">
-              Or start from a template
+            <h2 className="mb-6 text-sm font-medium text-muted-foreground">
+              Or pick a starting point
             </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
               {templates.map((template) => (
                 <TemplateCard
                   key={template.id}
                   {...template}
-                  onClick={() => handleTemplateSelect(template.id)}
+                  href={`/create?template=${template.id}`}
                 />
               ))}
             </div>
