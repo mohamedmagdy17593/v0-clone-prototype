@@ -1,13 +1,17 @@
 "use client";
 
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { Progress } from "@/components/ui/progress";
 import CodeWords from "@/components/icons/code-words";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
+import { Brain, ListTodo, Code, Package, CheckCircle } from "lucide-react";
+import type { GenerationStageInfo } from "@/types/generation";
 
 interface GeneratingOverlayProps {
   isGenerating: boolean;
+  stageInfo?: GenerationStageInfo;
   minDisplayTime?: number;
   className?: string;
 }
@@ -19,35 +23,53 @@ const LOADING_MESSAGES = [
   "Almost there",
 ];
 
+const STAGE_ICONS = {
+  THINKING: Brain,
+  PLANNING: ListTodo,
+  GENERATING: Code,
+  BUILDING: Package,
+  COMPLETE: CheckCircle,
+} as const;
+
 export function GeneratingOverlay({
   isGenerating,
+  stageInfo,
   minDisplayTime = 2000,
   className,
 }: GeneratingOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
 
+  const hasStageInfo = !!stageInfo;
+
+  // Handle visibility based on isGenerating
+  // Note: setState in effect is intentional here - we need to synchronize
+  // visibility state with the isGenerating prop to support minimum display time
   useEffect(() => {
     if (isGenerating) {
       setIsVisible(true);
       setMessageIndex(0);
-    } else if (isVisible) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, minDisplayTime);
-      return () => clearTimeout(timer);
+      return;
     }
-  }, [isGenerating, isVisible, minDisplayTime]);
+    // When isGenerating becomes false, delay hiding
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, minDisplayTime);
+    return () => clearTimeout(timer);
+  }, [isGenerating, minDisplayTime]);
 
+  // Cycle messages only when visible and no stageInfo
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || hasStageInfo) return;
 
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 2500);
 
     return () => clearInterval(interval);
-  }, [isVisible]);
+  }, [isVisible, hasStageInfo]);
+
+  const StageIcon = stageInfo ? STAGE_ICONS[stageInfo.stage] : null;
 
   return (
     <AnimatePresence>
@@ -64,93 +86,103 @@ export function GeneratingOverlay({
             },
           }}
           className={cn(
-            "absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-background backdrop-blur-md motion-reduce:opacity-90",
+            "absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-background backdrop-blur-md motion-reduce:opacity-90",
             className
           )}
         >
-          {/* Icon container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2, ease: "easeOut", delay: 0.05 }}
             className="relative flex items-center justify-center"
           >
-            <motion.div
-              animate={{
-                rotate: 360,
-                scale: [1, 1.03, 1],
-              }}
-              transition={{
-                rotate: {
-                  duration: 4,
-                  ease: "linear",
-                  repeat: Infinity,
-                },
-                scale: {
-                  duration: 2,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                },
-              }}
-              className="text-foreground/80 motion-reduce:animate-none"
-            >
-              <CodeWords />
-            </motion.div>
+            {hasStageInfo && StageIcon ? (
+              <motion.div
+                key={stageInfo.stage}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className="text-foreground/80"
+              >
+                <StageIcon className="size-10" strokeWidth={1.5} />
+              </motion.div>
+            ) : (
+              <motion.div
+                animate={{
+                  rotate: 360,
+                  scale: [1, 1.03, 1],
+                }}
+                transition={{
+                  rotate: {
+                    duration: 4,
+                    ease: "linear",
+                    repeat: Infinity,
+                  },
+                  scale: {
+                    duration: 2,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                  },
+                }}
+                className="text-foreground/80 motion-reduce:animate-none"
+              >
+                <CodeWords />
+              </motion.div>
+            )}
           </motion.div>
 
-          {/* Text content */}
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
             className="flex flex-col items-center gap-3"
           >
-            <div className="flex items-center gap-2">
-              <Shimmer className="text-base font-medium tracking-tight" duration={2.5}>
-                {LOADING_MESSAGES[messageIndex]}
-              </Shimmer>
-              <span className="text-base font-medium text-muted-foreground">
-                <LoadingDots />
-              </span>
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={hasStageInfo ? stageInfo.message : messageIndex}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Shimmer className="text-base font-medium tracking-tight" duration={2.5}>
+                  {hasStageInfo ? stageInfo.message : LOADING_MESSAGES[messageIndex]}
+                </Shimmer>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Show current file when available */}
+            {hasStageInfo && stageInfo.currentFile && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs text-muted-foreground font-mono"
+              >
+                {stageInfo.currentFile}
+              </motion.p>
+            )}
 
             {/* Progress indicator */}
-            <div className="flex items-center gap-1">
-              {LOADING_MESSAGES.map((_, i) => (
-                <motion.div
-                  key={i}
-                  className={cn(
-                    "size-1 rounded-full transition-colors duration-200",
-                    i <= messageIndex ? "bg-foreground/60" : "bg-foreground/15"
-                  )}
-                />
-              ))}
-            </div>
+            {hasStageInfo ? (
+              <div className="w-48">
+                <Progress value={stageInfo.progress} className="h-1" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                {LOADING_MESSAGES.map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className={cn(
+                      "size-1 rounded-full transition-colors duration-200",
+                      i <= messageIndex ? "bg-foreground/60" : "bg-foreground/15"
+                    )}
+                  />
+                ))}
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-function LoadingDots() {
-  return (
-    <span className="inline-flex w-5">
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          animate={{ opacity: [0.2, 1, 0.2] }}
-          transition={{
-            duration: 1.2,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: i * 0.2,
-          }}
-          className="motion-reduce:opacity-60"
-        >
-          .
-        </motion.span>
-      ))}
-    </span>
   );
 }

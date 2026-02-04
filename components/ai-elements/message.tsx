@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,19 +17,26 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: "user" | "assistant" | "system";
 };
 
-export const Message = ({ className, from, ...props }: MessageProps) => (
+export const Message = ({ className, from, children, ...props }: MessageProps) => (
   <div
     className={cn(
       "group flex w-full flex-col gap-1",
       from === "user"
-        ? "is-user ms-auto max-w-[90%] justify-end"
+        ? "is-user ms-auto max-w-[90%] justify-end items-end"
         : "max-w-full",
       from === "assistant" && "is-assistant",
       from === "system" && "is-system",
       className,
     )}
     {...props}
-  />
+  >
+    {from === "user" && (
+      <Avatar className="size-6">
+        <AvatarFallback className="text-[10px] font-medium">MO</AvatarFallback>
+      </Avatar>
+    )}
+    {children}
+  </div>
 );
 
 export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
@@ -41,7 +49,7 @@ export const MessageContent = ({
   <div
     className={cn(
       "flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
-      "group-[.is-user]:ms-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-3 group-[.is-user]:py-2 group-[.is-user]:text-foreground",
+      "group-[.is-user]:ms-auto group-[.is-user]:rounded-lg group-[.is-user]:rounded-tr-none group-[.is-user]:bg-secondary group-[.is-user]:px-3 group-[.is-user]:py-2 group-[.is-user]:text-foreground",
       "group-[.is-assistant]:text-foreground",
       className,
     )}

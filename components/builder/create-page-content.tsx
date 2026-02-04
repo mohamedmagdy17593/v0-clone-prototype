@@ -10,7 +10,6 @@ export default function CreatePageContent() {
 
   return (
     <BuilderLayout
-      previewUrl="https://example.com"
       initialPrompt={prompt}
       template={template}
     />
