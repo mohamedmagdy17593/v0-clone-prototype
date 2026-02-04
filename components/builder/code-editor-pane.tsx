@@ -41,6 +41,36 @@ interface ProjectFile {
   content: string;
 }
 
+type MonacoThemeData = {
+  base: "vs" | "vs-dark";
+  inherit: boolean;
+  rules: Array<{ token: string; foreground?: string }>;
+  colors: Record<string, string>;
+};
+
+type MonacoAPI = {
+  editor: {
+    defineTheme: (name: string, theme: MonacoThemeData) => void;
+    setTheme: (theme: string) => void;
+  };
+  languages: {
+    typescript: {
+      typescriptDefaults: {
+        setDiagnosticsOptions: (options: {
+          noSemanticValidation?: boolean;
+          noSyntaxValidation?: boolean;
+        }) => void;
+      };
+      javascriptDefaults: {
+        setDiagnosticsOptions: (options: {
+          noSemanticValidation?: boolean;
+          noSyntaxValidation?: boolean;
+        }) => void;
+      };
+    };
+  };
+};
+
 const CV_FORM_PATH = "components/demo/cv-review-form.tsx";
 const DEFAULT_SELECTED_PATH = "app/page.tsx";
 const DEFAULT_EXPANDED = new Set(["app", "components", "components/demo", "lib"]);
@@ -236,61 +266,141 @@ function renderTree(nodes: ProjectNode[]) {
   });
 }
 
-function defineMonacoThemes(monaco: {
-  editor: {
-    defineTheme: (
-      name: string,
-      theme: {
-        base: "vs" | "vs-dark";
-        inherit: boolean;
-        rules: Array<{ token: string; foreground?: string }>;
-        colors: Record<string, string>;
-      },
-    ) => void;
-  };
-}) {
-  monaco.editor.defineTheme("v0-light", {
-    base: "vs",
+function toHexColor(input: string, fallback: string) {
+  if (typeof document === "undefined") return fallback;
+
+  const probe = document.createElement("span");
+  probe.style.color = input;
+  probe.style.position = "fixed";
+  probe.style.pointerEvents = "none";
+  probe.style.opacity = "0";
+  document.body.appendChild(probe);
+
+  const normalized = getComputedStyle(probe).color;
+  probe.remove();
+
+  const rgbMatch = normalized.match(
+    /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*([\d.]+))?\)/,
+  );
+  if (!rgbMatch) return fallback;
+
+  const [, r, g, b] = rgbMatch;
+  const toHex = (value: string) =>
+    Math.max(0, Math.min(255, Number(value)))
+      .toString(16)
+      .padStart(2, "0")
+      .toUpperCase();
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function withAlpha(hexColor: string, alpha: number) {
+  const normalized = hexColor.replace("#", "");
+  if (normalized.length !== 6) return hexColor;
+  const a = Math.max(0, Math.min(255, Math.round(alpha * 255)))
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `#${normalized}${a}`;
+}
+
+function resolveThemeColor(
+  cssVar: string,
+  fallback: string,
+  rootStyles: CSSStyleDeclaration | null,
+) {
+  const raw = rootStyles?.getPropertyValue(cssVar)?.trim();
+  if (!raw) return fallback;
+  return toHexColor(raw, fallback);
+}
+
+function defineMonacoTheme(monaco: MonacoAPI, isDark: boolean) {
+  const rootStyles =
+    typeof document !== "undefined"
+      ? getComputedStyle(document.documentElement)
+      : null;
+
+  const background = resolveThemeColor(
+    "--background",
+    isDark ? "#17171B" : "#FFFFFF",
+    rootStyles,
+  );
+  const foreground = resolveThemeColor(
+    "--foreground",
+    isDark ? "#FAFAFA" : "#111827",
+    rootStyles,
+  );
+  const mutedForeground = resolveThemeColor(
+    "--muted-foreground",
+    isDark ? "#A1A1AA" : "#6B7280",
+    rootStyles,
+  );
+  const accent = resolveThemeColor(
+    "--accent",
+    isDark ? "#27272A" : "#F4F4F5",
+    rootStyles,
+  );
+  const primary = resolveThemeColor(
+    "--primary",
+    isDark ? "#A3E635" : "#65A30D",
+    rootStyles,
+  );
+  const chart1 = resolveThemeColor(
+    "--chart-1",
+    isDark ? "#4ADE80" : "#22C55E",
+    rootStyles,
+  );
+  const chart2 = resolveThemeColor(
+    "--chart-2",
+    isDark ? "#22C55E" : "#16A34A",
+    rootStyles,
+  );
+  const chart3 = resolveThemeColor(
+    "--chart-3",
+    isDark ? "#84CC16" : "#65A30D",
+    rootStyles,
+  );
+  const chart4 = resolveThemeColor(
+    "--chart-4",
+    isDark ? "#A3E635" : "#84CC16",
+    rootStyles,
+  );
+
+  monaco.editor.defineTheme("v0-app", {
+    base: isDark ? "vs-dark" : "vs",
     inherit: true,
     rules: [
-      { token: "comment", foreground: "6B7280" },
-      { token: "keyword", foreground: "0F766E" },
-      { token: "string", foreground: "0C7C59" },
-      { token: "number", foreground: "B54708" },
-      { token: "type", foreground: "124DD6" },
+      { token: "comment", foreground: mutedForeground.replace("#", "") },
+      { token: "keyword", foreground: primary.replace("#", "") },
+      { token: "string", foreground: chart2.replace("#", "") },
+      { token: "number", foreground: chart4.replace("#", "") },
+      { token: "type", foreground: chart3.replace("#", "") },
+      { token: "function", foreground: chart1.replace("#", "") },
     ],
     colors: {
-      "editor.background": "#FCFCFD",
-      "editor.foreground": "#16181D",
-      "editor.lineHighlightBackground": "#F3F4F6",
-      "editor.selectionBackground": "#DCEFFF",
-      "editor.inactiveSelectionBackground": "#E7EAF0",
-      "editorLineNumber.foreground": "#8A94A6",
-      "editorLineNumber.activeForeground": "#3A4252",
-      "editorGutter.background": "#FCFCFD",
+      "editor.background": background,
+      "editor.foreground": foreground,
+      "editor.lineHighlightBackground": withAlpha(accent, isDark ? 0.5 : 0.85),
+      "editor.selectionBackground": withAlpha(primary, isDark ? 0.3 : 0.25),
+      "editor.inactiveSelectionBackground": withAlpha(
+        mutedForeground,
+        isDark ? 0.2 : 0.18,
+      ),
+      "editorLineNumber.foreground": mutedForeground,
+      "editorLineNumber.activeForeground": foreground,
+      "editorGutter.background": background,
     },
   });
+}
 
-  monaco.editor.defineTheme("v0-dark", {
-    base: "vs-dark",
-    inherit: true,
-    rules: [
-      { token: "comment", foreground: "7C8598" },
-      { token: "keyword", foreground: "4FD1C5" },
-      { token: "string", foreground: "5DE28D" },
-      { token: "number", foreground: "F9A94C" },
-      { token: "type", foreground: "78A9FF" },
-    ],
-    colors: {
-      "editor.background": "#181B21",
-      "editor.foreground": "#E8ECF3",
-      "editor.lineHighlightBackground": "#222834",
-      "editor.selectionBackground": "#2B4268",
-      "editor.inactiveSelectionBackground": "#2A3344",
-      "editorLineNumber.foreground": "#6E778A",
-      "editorLineNumber.activeForeground": "#D2D9E6",
-      "editorGutter.background": "#181B21",
-    },
+function disableMonacoDiagnostics(monaco: MonacoAPI) {
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: true,
+    noSyntaxValidation: true,
+  });
+  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: true,
+    noSyntaxValidation: true,
   });
 }
 
@@ -303,9 +413,7 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
   const [showMobileFiles, setShowMobileFiles] = useState(true);
   const [expandedPaths, setExpandedPaths] = useState(DEFAULT_EXPANDED);
   const [selectedPath, setSelectedPath] = useState(DEFAULT_SELECTED_PATH);
-  const editorMonacoRef = useRef<{
-    editor: { setTheme: (theme: string) => void };
-  } | null>(null);
+  const editorMonacoRef = useRef<MonacoAPI | null>(null);
 
   const projectNodes = createProjectTree(currentCode || CV_FORM_FALLBACK_CONTENT);
   const fileMap: Record<string, ProjectFile> = {};
@@ -329,20 +437,26 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
   );
 
   const handleEditorMount = useCallback(
-    (
-      _editor: unknown,
-      monaco: { editor: { setTheme: (theme: string) => void } },
-    ) => {
+    (_editor: unknown, monaco: MonacoAPI) => {
       editorMonacoRef.current = monaco;
-      monaco.editor.setTheme(resolvedTheme === "dark" ? "v0-dark" : "v0-light");
+      defineMonacoTheme(monaco, resolvedTheme === "dark");
+      monaco.editor.setTheme("v0-app");
+    },
+    [resolvedTheme],
+  );
+
+  const handleBeforeMount = useCallback(
+    (monaco: MonacoAPI) => {
+      disableMonacoDiagnostics(monaco);
+      defineMonacoTheme(monaco, resolvedTheme === "dark");
     },
     [resolvedTheme],
   );
 
   useEffect(() => {
-    editorMonacoRef.current?.editor.setTheme(
-      resolvedTheme === "dark" ? "v0-dark" : "v0-light",
-    );
+    if (!editorMonacoRef.current) return;
+    defineMonacoTheme(editorMonacoRef.current, resolvedTheme === "dark");
+    editorMonacoRef.current.editor.setTheme("v0-app");
   }, [resolvedTheme]);
 
   return (
@@ -399,7 +513,7 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
 
           <div className="min-h-0 flex-1">
             <Editor
-              beforeMount={defineMonacoThemes}
+              beforeMount={handleBeforeMount}
               language={selectedFile?.language ?? "plaintext"}
               onChange={handleEditorChange}
               onMount={handleEditorMount}
@@ -418,7 +532,7 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
                     : "off",
               }}
               path={activePath}
-              theme={resolvedTheme === "dark" ? "v0-dark" : "v0-light"}
+              theme="v0-app"
               value={selectedValue}
             />
           </div>
@@ -470,7 +584,7 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
 
             <div className="min-h-0 flex-1">
               <Editor
-                beforeMount={defineMonacoThemes}
+                beforeMount={handleBeforeMount}
                 language={selectedFile?.language ?? "plaintext"}
                 onChange={handleEditorChange}
                 onMount={handleEditorMount}
@@ -489,7 +603,7 @@ export function CodeEditorPane({ currentCode = "" }: CodeEditorPaneProps) {
                       : "off",
                 }}
                 path={activePath}
-                theme={resolvedTheme === "dark" ? "v0-dark" : "v0-light"}
+                theme="v0-app"
                 value={selectedValue}
               />
             </div>

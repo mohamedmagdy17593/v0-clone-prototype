@@ -160,7 +160,7 @@ export function ChatPanel({
         onSubmit={onSend}
         placeholder="Tell me what you'd like to create... (type @ to mention a workflow)"
         isLoading={isLoading}
-        inputClassName="p-4"
+        inputClassName="p-3"
       />
     </Conversation>
   );

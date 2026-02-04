@@ -143,11 +143,11 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
   const generationStageInfo: GenerationStageInfo | undefined =
     generationState.stage !== "IDLE" && generationState.stage !== "COMPLETE"
       ? {
-          stage: generationState.stage,
-          message: generationState.message,
-          progress: generationState.progress,
-          currentFile: generationState.currentFile || undefined,
-        }
+        stage: generationState.stage,
+        message: generationState.message,
+        progress: generationState.progress,
+        currentFile: generationState.currentFile || undefined,
+      }
       : undefined;
 
   const handleSend = useCallback(
@@ -265,7 +265,7 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
           />
         </ResizablePanel>
         <ResizableHandle className="bg-transparent" />
-        <ResizablePanel className="!overflow-hidden pb-2 pr-2">
+        <ResizablePanel className="overflow-hidden! pb-3 pr-3">
           <div className="h-full overflow-hidden rounded-lg border border-border">
             <PreviewPanel
               isGenerating={isLoading}
