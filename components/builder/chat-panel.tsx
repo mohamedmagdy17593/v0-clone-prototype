@@ -45,10 +45,10 @@ const ChatMessageItem = memo(function ChatMessageItem({
             customAssistantContent
           ) : (
             (message.content || isStreaming) && (
-            <StreamingMessage
-              content={message.content}
-              isStreaming={isStreaming}
-            />
+              <StreamingMessage
+                content={message.content}
+                isStreaming={isStreaming}
+              />
             )
           )
         ) : (
@@ -135,7 +135,7 @@ export function ChatPanel({
         </ConversationContent>
       ) : (
         <ConversationEmptyState className="px-4">
-          <Sparkles className="size-8 text-muted-foreground/50" />
+          <Sparkles className="size-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             What would you like to build?
           </p>

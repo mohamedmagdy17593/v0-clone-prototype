@@ -1,14 +1,9 @@
 "use client";
 
 import {
-  CodeBlockActions,
   CodeBlockContainer,
-  CodeBlockContent,
-  CodeBlockCopyButton,
-  CodeBlockFilename,
-  CodeBlockHeader,
-  CodeBlockTitle,
 } from "@/components/ai-elements/code-block";
+import { CodeEditorPane } from "@/components/builder/code-editor-pane";
 import { GeneratingOverlay } from "@/components/ai-elements/generating-overlay";
 import { StarterTemplate } from "@/components/demo/starter-template";
 import { Button } from "@/components/ui/button";
@@ -177,23 +172,7 @@ export function PreviewPanel({
           language="html"
           className="flex min-h-0 flex-1 flex-col rounded-none border-0"
         >
-          <CodeBlockHeader className="shrink-0 border-b border-border bg-transparent py-1.5">
-            <CodeBlockTitle>
-              <CodeBlockFilename className="text-xs text-muted-foreground">
-                page.html
-              </CodeBlockFilename>
-            </CodeBlockTitle>
-            <CodeBlockActions>
-              <CodeBlockCopyButton code={currentCode} className="size-7 sm:size-6" />
-            </CodeBlockActions>
-          </CodeBlockHeader>
-          <div className="min-h-0 flex-1 overflow-auto">
-            <CodeBlockContent
-              code={currentCode || "<!-- No code generated yet -->"}
-              language="html"
-              showLineNumbers
-            />
-          </div>
+          <CodeEditorPane currentCode={currentCode} />
         </CodeBlockContainer>
       </TabsContent>
     </Tabs>
