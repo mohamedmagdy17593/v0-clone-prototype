@@ -36,6 +36,12 @@ function getRevealDelay(activityStream: DemoConfig["activityStream"], index: num
   return nextItem.type === "file" ? FILE_CARD_REVEAL_INTERVAL : STREAM_REVEAL_INTERVAL;
 }
 
+function resolveDemoForTemplate(template?: string) {
+  if (!template) return null;
+  if (template === "blank") return getDemoById("blank-canvas") ?? null;
+  return null;
+}
+
 const FALLBACK_DEMO = getDemoById(DEFAULT_DEMO_ID) ?? DEMO_REGISTRY[0];
 if (!FALLBACK_DEMO) {
   throw new Error("Demo registry is empty. Add at least one demo configuration.");
@@ -157,10 +163,11 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
       : undefined;
 
   const handleSend = useCallback(
-    (content: string) => {
+    (content: string, options?: { template?: string }) => {
       if (!content.trim()) return;
 
-      const nextDemo = pickDemoForPrompt(content);
+      const templateDemo = resolveDemoForTemplate(options?.template);
+      const nextDemo = templateDemo ?? pickDemoForPrompt(content);
       selectedDemoRef.current = nextDemo;
       setSelectedDemo(nextDemo);
 
@@ -213,7 +220,10 @@ export function BuilderLayout({ initialPrompt, template }: BuilderLayoutProps) {
     if (promptToSend) {
       hasInitialized.current = true;
       // Use timeout to avoid synchronous setState in effect
-      const timer = setTimeout(() => handleSend(promptToSend), 0);
+      const timer = setTimeout(
+        () => handleSend(promptToSend, { template: template || undefined }),
+        0,
+      );
       return () => clearTimeout(timer);
     }
   }, [initialPrompt, template, handleSend]);

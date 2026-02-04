@@ -71,10 +71,10 @@ const ChatMessageItem = memo(function ChatMessageItem({
 });
 
 const SUGGESTION_PROMPTS = [
-  "Build a CV reviewer with @cv_reviewer",
-  "Summarize r/nextjs weekly to Slack with @reddit_weekly_summary",
-  "Auto-label support inbox with @gmail_ai_labeler",
-  "Create a dashboard for workflow runs",
+  "CV reviewer @cv_reviewer",
+  "r/nextjs to Slack @reddit_weekly_summary",
+  "Auto-label inbox @gmail_ai_labeler",
+  "Workflow runs dashboard",
 ];
 
 interface ChatPanelProps {
